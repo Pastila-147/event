@@ -1,5 +1,6 @@
 dist
 doc
+.DS_Store
 
 # Logs
 logs
@@ -38,6 +39,7 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+.yarn/
 
 # TypeScript v1 declaration files
 typings/

@@ -27,7 +27,7 @@ export default class Game {
   }
 
   result() {          
-    const gameArea = document.querySelector('.area_container'); 
+    const gameArea = document.querySelector('.game-board-container'); 
     this.hitDisplay = document.querySelector('.hit');
     this.missDisplay = document.querySelector('.miss');
   
