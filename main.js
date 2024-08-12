@@ -41,6 +41,13 @@ ___CSS_LOADER_EXPORT___.push([module.id, `
   margin: 3px;
 }
 
+.score {
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 25px;
+  color: #059181;
+}
+
 .active {
   background-image: url(${___CSS_LOADER_URL_REPLACEMENT_0___});
   background-size: 80%;
