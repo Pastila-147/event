@@ -15,6 +15,13 @@
   margin: 3px;
 }
 
+.score {
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 25px;
+  color: #059181;
+}
+
 .active {
   background-image: url('../img/goblin.png');
   background-size: 80%;
