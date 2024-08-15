@@ -5,7 +5,7 @@ export default class Game {
     this.hitCount = 0;     
     this.missCount = 0;     
     this.totalCount = 0; 
-    this.gameBoard = new GameBoard(container);     
+    this.gameBoard = new GameBoard(container);   
   }
 
   handleCellClick() {    
@@ -15,15 +15,19 @@ export default class Game {
 
     for (let i = 0; i < cells.length; i += 1) {
       cells[i].addEventListener('click', () => {
-        if (cells[i].classList.contains('active')) {
-          cells[i].classList.remove('active');
-          this.hitDisplay.textContent = +this.hitDisplay.textContent + 1;
-        } else {
-          this.missDisplay.textContent = +this.missDisplay.textContent + 1;
-        }
-        this.result();       
+        this.gameBoard.hit(cells[i]);      
       });
     }
+  }
+  
+  onSuccess() {
+    this.hitDisplay.textContent = +this.hitDisplay.textContent + 1;
+    this.result(); 
+  }
+
+  onFail() {
+    this.missDisplay.textContent = +this.missDisplay.textContent + 1;
+    this.result(); 
   }
 
   result() {          
@@ -32,36 +36,30 @@ export default class Game {
     this.missDisplay = document.querySelector('.miss');
   
     if (+this.hitDisplay.textContent === 5) {
+      this.gameBoard.stopGoblinMovement();
       const winNote = '<div class="result"> <p> Выигрыш!</p></div>'; 
-      gameArea.insertAdjacentHTML('beforeend', winNote);
-      this.stop(); 
-      this.gameBoard.stopGoblinMovement();           
+      gameArea.insertAdjacentHTML('afterend', winNote);
+                 
     } else if (+this.missDisplay.textContent === 5) {
+      this.gameBoard.stopGoblinMovement();
       const looseNote = '<div class="result"> <p> Проигрыш!</p></div>'; 
-      gameArea.insertAdjacentHTML('beforeend', looseNote);
-      this.stop(); 
-      this.gameBoard.stopGoblinMovement();       
+      gameArea.insertAdjacentHTML('afterend', looseNote);     
     }
   }
 
   initiate() {                
-    this.gameBoard.drawField(); 
-    this.gameBoard.moveGoblin();
+    this.gameBoard.drawField();
+    this.gameBoard.registerSuccess(this.onSuccess.bind(this));
+    this.gameBoard.registerFail(this.onFail.bind(this));
+    this.gameBoard.startGoblinMovement();
     this.missDisplay = document.querySelector('.miss');
     this.handleCellClick(); 
-    this.timer = setInterval(() => {
-      this.missDisplay.textContent = +this.missDisplay.textContent + this.totalCount; 
-      if (this.totalCount !== 1) {
-        setTimeout(() => { this.totalCount = 1; }, 1000);
-      }
-      this.result();    
-    }, 1000);
-  }
-
-  stop() {                  
-    const notification = document.querySelector('.result');
-  if (notification) {
-    clearInterval(this.timer);
-  }
+    // this.timer = setInterval(() => {
+    //   this.missDisplay.textContent = +this.missDisplay.textContent + this.totalCount; 
+    //   if (this.totalCount !== 1) {
+    //     setTimeout(() => { this.totalCount = 1; }, 1000);
+    //   }
+    //   this.result();    
+    // }, 1000);
   }
 }

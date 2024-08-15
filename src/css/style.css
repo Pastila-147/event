@@ -8,6 +8,10 @@
   margin-right: auto;
 }
 
+.game-board-container:hover {
+  cursor: url('../img/hammer(3).png'), auto;
+}
+
 .cell {
   background-color: rgb(66, 232, 238);
   width: 150px;
@@ -35,6 +39,3 @@
   text-align: center;
 }
 
-.game-board-container:hover {
-  cursor: url('../img/hammer.png'), auto;
-}
