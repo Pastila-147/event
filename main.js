@@ -18,8 +18,8 @@
 
 
 
-var ___CSS_LOADER_URL_IMPORT_0___ = new URL(/* asset import */ __webpack_require__(842), __webpack_require__.b);
-var ___CSS_LOADER_URL_IMPORT_1___ = new URL(/* asset import */ __webpack_require__(37), __webpack_require__.b);
+var ___CSS_LOADER_URL_IMPORT_0___ = new URL(/* asset import */ __webpack_require__(717), __webpack_require__.b);
+var ___CSS_LOADER_URL_IMPORT_1___ = new URL(/* asset import */ __webpack_require__(842), __webpack_require__.b);
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 var ___CSS_LOADER_URL_REPLACEMENT_0___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_0___);
 var ___CSS_LOADER_URL_REPLACEMENT_1___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_1___);
@@ -32,6 +32,10 @@ ___CSS_LOADER_EXPORT___.push([module.id, `
   height: 624px;
   margin-left: auto;
   margin-right: auto;
+}
+
+.game-board-container:hover {
+  cursor: url(${___CSS_LOADER_URL_REPLACEMENT_0___}), auto;
 }
 
 .cell {
@@ -49,7 +53,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, `
 }
 
 .active {
-  background-image: url(${___CSS_LOADER_URL_REPLACEMENT_0___});
+  background-image: url(${___CSS_LOADER_URL_REPLACEMENT_1___});
   background-size: 80%;
   background-repeat: no-repeat;
   background-position: center;
@@ -61,9 +65,6 @@ ___CSS_LOADER_EXPORT___.push([module.id, `
   text-align: center;
 }
 
-.game-board-container:hover {
-  cursor: url(${___CSS_LOADER_URL_REPLACEMENT_1___}), auto;
-}
 `, ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
@@ -461,10 +462,10 @@ module.exports = __webpack_require__.p + "2dbd01ce16c0fa83cb67.png";
 
 /***/ }),
 
-/***/ 37:
+/***/ 717:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-module.exports = __webpack_require__.p + "8400ba0f06fd3347a172.png";
+module.exports = __webpack_require__.p + "7df9d41a682e92ff6b4f.png";
 
 /***/ })
 
@@ -618,6 +619,9 @@ class GameBoard {
   constructor(container) {
     this.container = container;
     this.intervalId = null;
+    this.gameActive = false;
+    this.wasHit = false;
+    this.activeCellIndex = -1;
   }
   drawField() {
     const fragment = document.createDocumentFragment();
@@ -628,20 +632,49 @@ class GameBoard {
     }
     this.container.appendChild(fragment);
   }
-  moveGoblin() {
+  registerFail(failCallBack) {
+    this.failCallBack = failCallBack;
+  }
+  registerSuccess(successCallBack) {
+    this.successCallBack = successCallBack;
+  }
+  hit(cell) {
+    if (this.gameActive) {
+      this.wasHit = true;
+      if (cell.classList.contains('active')) {
+        cell.classList.remove('active');
+        this.successCallBack();
+      } else this.failCallBack();
+    }
+  }
+  hidePrevious() {
+    const activeCell = this.container.querySelector('.active');
+    if (activeCell) {
+      if (!this.wasHit) {
+        this.failCallBack();
+      }
+      activeCell.classList.remove('active');
+    }
+  }
+  showNewCell() {
+    this.activeCellIndex = this.getRandomCell(this.activeCellIndex);
+    const cell = this.container.childNodes[this.activeCellIndex];
+    cell.classList.add('active');
+    this.wasHit = false;
+    cell.dataset.index = this.activeCellIndex;
+  }
+  timerCallback() {
+    this.hidePrevious();
+    if (this.gameActive) {
+      this.showNewCell();
+    }
+  }
+  startGoblinMovement() {
+    this.gameActive = true;
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
-    this.intervalId = setInterval(() => {
-      const activeCell = this.container.querySelector('.active');
-      if (activeCell) {
-        activeCell.classList.remove('active');
-      }
-      const index = this.getRandomCell(activeCell ? Number(activeCell.dataset.index) : -1);
-      const cell = this.container.childNodes[index];
-      cell.classList.add('active');
-      cell.dataset.index = index;
-    }, 1000);
+    this.intervalId = setInterval(this.timerCallback.bind(this), 1000);
   }
   getRandomCell(currentIndex) {
     let newIndex;
@@ -651,6 +684,7 @@ class GameBoard {
     return newIndex;
   }
   stopGoblinMovement() {
+    this.gameActive = false;
     clearInterval(this.intervalId);
     const activeCell = this.container.querySelector('.active');
     if (activeCell) {
@@ -673,52 +707,46 @@ class Game {
     this.missDisplay = document.querySelector('.miss');
     for (let i = 0; i < cells.length; i += 1) {
       cells[i].addEventListener('click', () => {
-        if (cells[i].classList.contains('active')) {
-          cells[i].classList.remove('active');
-          this.hitDisplay.textContent = +this.hitDisplay.textContent + 1;
-        } else {
-          this.missDisplay.textContent = +this.missDisplay.textContent + 1;
-        }
-        this.result();
+        this.gameBoard.hit(cells[i]);
       });
     }
+  }
+  onSuccess() {
+    this.hitDisplay.textContent = +this.hitDisplay.textContent + 1;
+    this.result();
+  }
+  onFail() {
+    this.missDisplay.textContent = +this.missDisplay.textContent + 1;
+    this.result();
   }
   result() {
     const gameArea = document.querySelector('.game-board-container');
     this.hitDisplay = document.querySelector('.hit');
     this.missDisplay = document.querySelector('.miss');
     if (+this.hitDisplay.textContent === 5) {
+      this.gameBoard.stopGoblinMovement();
       const winNote = '<div class="result"> <p> Выигрыш!</p></div>';
-      gameArea.insertAdjacentHTML('beforeend', winNote);
-      this.stop();
-      this.gameBoard.stopGoblinMovement();
+      gameArea.insertAdjacentHTML('afterend', winNote);
     } else if (+this.missDisplay.textContent === 5) {
-      const looseNote = '<div class="result"> <p> Проигрыш!</p></div>';
-      gameArea.insertAdjacentHTML('beforeend', looseNote);
-      this.stop();
       this.gameBoard.stopGoblinMovement();
+      const looseNote = '<div class="result"> <p> Проигрыш!</p></div>';
+      gameArea.insertAdjacentHTML('afterend', looseNote);
     }
   }
   initiate() {
     this.gameBoard.drawField();
-    this.gameBoard.moveGoblin();
+    this.gameBoard.registerSuccess(this.onSuccess.bind(this));
+    this.gameBoard.registerFail(this.onFail.bind(this));
+    this.gameBoard.startGoblinMovement();
     this.missDisplay = document.querySelector('.miss');
     this.handleCellClick();
-    this.timer = setInterval(() => {
-      this.missDisplay.textContent = +this.missDisplay.textContent + this.totalCount;
-      if (this.totalCount !== 1) {
-        setTimeout(() => {
-          this.totalCount = 1;
-        }, 1000);
-      }
-      this.result();
-    }, 1000);
-  }
-  stop() {
-    const notification = document.querySelector('.result');
-    if (notification) {
-      clearInterval(this.timer);
-    }
+    // this.timer = setInterval(() => {
+    //   this.missDisplay.textContent = +this.missDisplay.textContent + this.totalCount; 
+    //   if (this.totalCount !== 1) {
+    //     setTimeout(() => { this.totalCount = 1; }, 1000);
+    //   }
+    //   this.result();    
+    // }, 1000);
   }
 }
 ;// CONCATENATED MODULE: ./src/js/app.js
